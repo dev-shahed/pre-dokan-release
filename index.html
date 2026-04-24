@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dokan & Dokan Pro — Release Testing Checklist</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #f7f8fa;
+    color: #1f2328;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .container {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 24px 18px 60px;
+  }
+  header {
+    background: linear-gradient(135deg, #ff5722 0%, #e64a19 100%);
+    color: #fff;
+    padding: 24px 26px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 14px rgba(230,74,25,0.18);
+  }
+  header h1 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+  }
+  header p {
+    margin: 0;
+    font-size: 13px;
+    opacity: 0.92;
+  }
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .meta label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .meta input {
+    width: 100%;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .progress-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .progress-wrap {
+    flex: 1;
+    min-width: 220px;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #57606a;
+  }
+  .progress-label strong { color: #1f2328; font-weight: 600; }
+  .progress-bar {
+    width: 100%;
+    height: 10px;
+    background: #eef0f3;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff7a45, #ff5722);
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+  .stats {
+    display: flex;
+    gap: 14px;
+    font-size: 12px;
+    color: #57606a;
+  }
+  .stats span strong { color: #1f2328; font-size: 14px; font-weight: 600; }
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn {
+    background: #fff;
+    border: 1px solid #d0d7de;
+    color: #1f2328;
+    padding: 7px 14px;
+    border-radius: 7px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+  }
+  .btn:hover { background: #f3f4f6; border-color: #b1bac4; }
+  .btn.primary { background: #ff5722; color: #fff; border-color: #ff5722; }
+  .btn.primary:hover { background: #e64a19; border-color: #e64a19; }
+  .btn.danger:hover { background: #fff5f3; border-color: #ff5722; color: #e64a19; }
+  .filter-pills {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+  .pill {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    background: #eef0f3;
+    color: #57606a;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-family: inherit;
+  }
+  .pill.active { background: #ff5722; color: #fff; }
+  .section {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    user-select: none;
+    gap: 10px;
+  }
+  .section-header:hover { background: #fafbfc; }
+  .section-title {
+    flex: 1;
+    font-weight: 600;
+    font-size: 14px;
+    color: #1f2328;
+  }
+  .section-count {
+    font-size: 12px;
+    color: #57606a;
+    background: #eef0f3;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 500;
+  }
+  .section-count.done { background: #dcfce7; color: #166534; }
+  .chevron {
+    transition: transform 0.2s;
+    color: #57606a;
+    font-size: 10px;
+  }
+  .section.collapsed .chevron { transform: rotate(-90deg); }
+  .section.collapsed .section-body { display: none; }
+  .section-body {
+    border-top: 1px solid #e5e7eb;
+    padding: 6px 0;
+  }
+  .group {
+    padding: 10px 16px 6px;
+  }
+  .group-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+    font-weight: 600;
+    margin: 0 0 6px;
+  }
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+  .item:hover { background: #fafbfc; }
+  .item input[type="checkbox"] {
+    margin: 2px 0 0;
+    width: 16px;
+    height: 16px;
+    accent-color: #ff5722;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .item label {
+    flex: 1;
+    cursor: pointer;
+    color: #1f2328;
+  }
+  .item.checked label {
+    text-decoration: line-through;
+    color: #8b95a1;
+  }
+  .footer-note {
+    text-align: center;
+    color: #8b95a1;
+    font-size: 12px;
+    margin-top: 18px;
+  }
+  @media (max-width: 600px) {
+    .toolbar { gap: 6px; }
+    .filter-pills { margin-left: 0; width: 100%; }
+    .btn { font-size: 12px; padding: 6px 10px; }
+    header h1 { font-size: 18px; }
+  }
+  @media print {
+    body { background: #fff; }
+    .toolbar, .filter-pills, header { display: none; }
+    .section.collapsed .section-body { display: block !important; }
+    .section { page-break-inside: avoid; border: 1px solid #ccc; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Dokan & Dokan Pro — Release Testing Checklist</h1>
+    <p>Pre-release QA coverage for the multi-vendor marketplace plugin. Check items as you test; progress saves automatically in your browser.</p>
+  </header>
+
+  <div class="meta">
+    <div>
+      <label for="metaVersion">Release version</label>
+      <input id="metaVersion" type="text" placeholder="e.g. 3.12.0" />
+    </div>
+    <div>
+      <label for="metaTester">Tester</label>
+      <input id="metaTester" type="text" placeholder="your name / handle" />
+    </div>
+    <div>
+      <label for="metaDate">Target date</label>
+      <input id="metaDate" type="date" />
+    </div>
+  </div>
+
+  <div class="progress-card">
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>Overall progress</span>
+        <strong id="pct">0%</strong>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="fill"></div></div>
+    </div>
+    <div class="stats">
+      <span><strong id="done">0</strong> done</span>
+      <span><strong id="total">0</strong> total</span>
+      <span><strong id="remaining">0</strong> left</span>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn" id="expandAll">Expand all</button>
+    <button class="btn" id="collapseAll">Collapse all</button>
+    <button class="btn" id="exportBtn">Export JSON</button>
+    <button class="btn" id="importBtn">Import JSON</button>
+    <input type="file" id="importFile" accept="application/json" style="display:none" />
+    <button class="btn" id="printBtn">Print</button>
+    <button class="btn danger" id="reset">Reset</button>
+    <div class="filter-pills">
+      <button class="pill active" data-filter="all">All</button>
+      <button class="pill" data-filter="open">Open</button>
+      <button class="pill" data-filter="done">Done</button>
+    </div>
+  </div>
+
+  <div id="checklist"></div>
+
+  <div class="footer-note">Progress saved locally in this browser. Use Export / Import to move it between machines.</div>
+</div>
+
+<script>
+const DATA = [
+  {
+    id: "env",
+    title: "1. Environment & Compatibility",
+    groups: [{
+      items: [
+        "PHP 7.4 compatibility",
+        "PHP 8.0 compatibility",
+        "PHP 8.1 compatibility",
+        "PHP 8.2 compatibility",
+        "PHP 8.3 compatibility",
+        "WordPress latest + previous 2 major versions",
+        "WooCommerce latest + previous 2 major versions",
+        "MySQL / MariaDB version tests",
+        "Theme: Storefront",
+        "Theme: Astra",
+        "Theme: Dokani",
+        "Theme: Twenty Twenty-Four",
+        "WordPress Multisite",
+        "Chrome, Firefox, Safari, Edge (desktop)",
+        "Mobile browsers (iOS Safari, Android Chrome)"
+      ]
+    }]
+  },
+  {
+    id: "install",
+    title: "2. Installation & Upgrade",
+    groups: [{
+      items: [
+        "Fresh install of Dokan Lite",
+        "Fresh install of Dokan Pro on top of Lite",
+        "Upgrade from previous stable version",
+        "Database schema migration verified",
+        "Activation without fatal errors",
+        "Deactivation without errors",
+        "Setup wizard end-to-end flow",
+        "Uninstall / cleanup behavior"
+      ]
+    }]
+  },
+  {
+    id: "lite",
+    title: "3. Dokan Lite — Core Features",
+    groups: [
+      { title: "Vendor registration & account", items: [
+        "Frontend vendor signup (seller + customer)",
+        "Email verification",
+        "Auto-approval flow",
+        "Manual approval flow",
+        "Login / logout",
+        "Password reset"
+      ]},
+      { title: "Vendor dashboard", items: [
+        "Dashboard widgets & stats render",
+        "Profile completeness progress",
+        "Store settings (banner, logo, address)",
+        "Payment settings",
+        "Basic SEO fields"
+      ]},
+      { title: "Product management", items: [
+        "Simple product add / edit / delete",
+        "Variable product creation",
+        "Downloadable / virtual products",
+        "Categories, tags, attributes",
+        "Inventory, SKU, stock status",
+        "Bulk edit & product search"
+      ]},
+      { title: "Order management", items: [
+        "Vendor order list & detail view",
+        "Status transitions (processing → completed → cancelled)",
+        "Order notes",
+        "Email notifications (vendor, customer, admin)"
+      ]},
+      { title: "Commission", items: [
+        "Global commission",
+        "Category-wise commission",
+        "Vendor-wise commission",
+        "Product-wise commission",
+        "Percentage / flat / combined",
+        "Commission recalculation on refund"
+      ]},
+      { title: "Withdraw / payout", items: [
+        "Withdraw via PayPal",
+        "Withdraw via bank",
+        "Withdraw via Skrill",
+        "Minimum balance / threshold",
+        "Admin approval / cancellation",
+        "Withdraw history"
+      ]},
+      { title: "Store frontend", items: [
+        "Store listing page",
+        "Single store page (products, reviews, contact)",
+        "Store search / sort / filter"
+      ]},
+      { title: "Admin panel", items: [
+        "Vendors list & capability toggles",
+        "Dokan settings (general, selling, withdraw, pages, appearance, privacy)",
+        "Reports (sales, top vendors, earnings)"
+      ]}
+    ]
+  },
+  {
+    id: "pro",
+    title: "4. Dokan Pro — Modules",
+    groups: [
+      { title: "Subscription & packages", items: [
+        "Create subscription plans (product count, duration, recurring)",
+        "Package purchase",
+        "Package renewal",
+        "Package cancellation",
+        "Feature restriction when package expires"
+      ]},
+      { title: "Advanced product types", items: [
+        "Booking products",
+        "Auction products",
+        "Product Addons",
+        "Wholesale",
+        "Single Product Multi-Vendor (SPMV)"
+      ]},
+      { title: "Store features", items: [
+        "Store SEO",
+        "Store Support",
+        "Store Followers",
+        "Store Reviews",
+        "Store Categories",
+        "Vacation / holiday mode",
+        "Live Chat",
+        "Store Location / Geolocation"
+      ]},
+      { title: "Vendor tools", items: [
+        "Vendor Staff Manager (roles & capabilities)",
+        "Vendor Verification (ID, address, social)",
+        "Vendor Analytics",
+        "Statements of account",
+        "Dashboard customization"
+      ]},
+      { title: "Payments", items: [
+        "Stripe Connect (standard)",
+        "Stripe Connect (express)",
+        "PayPal Marketplace / Adaptive",
+        "PayPal Payouts",
+        "MangoPay / Razorpay (if enabled)",
+        "Split payment & commission transfer"
+      ]},
+      { title: "Shipping & fulfillment", items: [
+        "Vendor-wise shipping",
+        "Shipment tracking",
+        "Delivery time",
+        "ShipStation integration",
+        "Distance Rate Shipping"
+      ]},
+      { title: "Order & post-sale", items: [
+        "Refund request / approval",
+        "RMA (returns)",
+        "Vendor coupons",
+        "Product enquiry / Q&A",
+        "Report abuse"
+      ]},
+      { title: "Reporting", items: [
+        "Admin reports (vendor, product, earnings, refund)",
+        "CSV export",
+        "Statement of account"
+      ]}
+    ]
+  },
+  {
+    id: "regression",
+    title: "5. Functional / Regression Scenarios",
+    groups: [{ items: [
+      "End-to-end multi-vendor purchase (cart → checkout → split order → payout)",
+      "Full refund + commission reversal",
+      "Partial refund + commission adjustment",
+      "Coupon application (admin + vendor)",
+      "Tax calculation per vendor",
+      "Guest checkout",
+      "Multi-currency via third-party"
+    ]}]
+  },
+  {
+    id: "nonfunctional",
+    title: "6. Non-Functional Testing",
+    groups: [
+      { title: "Performance", items: [
+        "Page load with 1k+ products",
+        "100+ vendors load test",
+        "Slow-query profiling"
+      ]},
+      { title: "Security", items: [
+        "Capability / permission checks",
+        "Nonce validation on forms",
+        "SQL injection attempts on vendor inputs",
+        "XSS on vendor inputs",
+        "File upload validation"
+      ]},
+      { title: "Other", items: [
+        "Accessibility: keyboard navigation",
+        "Accessibility: ARIA on dashboard forms",
+        "Localization / translations",
+        "RTL layout (Arabic / Hebrew)",
+        "REST API auth & endpoints (vendor, product, order, withdraw)",
+        "Mobile responsive vendor dashboard",
+        "Mobile responsive store page & checkout"
+      ]}
+    ]
+  },
+  {
+    id: "integrations",
+    title: "7. Integration Testing",
+    groups: [{ items: [
+      "Elementor compatibility",
+      "Block editor / Gutenberg",
+      "WPML",
+      "Polylang",
+      "Yoast SEO",
+      "Rank Math",
+      "WP Rocket caching",
+      "LiteSpeed caching",
+      "WooCommerce Subscriptions",
+      "WooCommerce Bookings",
+      "WooCommerce Product Bundles",
+      "Dokan add-ons (Analytics, Vendor Subscription, Germanized, etc.)"
+    ]}]
+  },
+  {
+    id: "release",
+    title: "8. Release Gate Checklist",
+    groups: [{ items: [
+      "All critical & high-severity bugs closed",
+      "Automated test suite passing (PHPUnit / E2E)",
+      "Smoke test on staging with production-like data",
+      "Changelog updated",
+      "readme.txt version bumped",
+      "Plugin version bumped",
+      "Backward compatibility notes documented",
+      "Documentation & knowledge base updated",
+      "Rollback plan ready",
+      "QA lead sign-off",
+      "Engineering lead sign-off",
+      "Product owner sign-off",
+      "Ready to tag & release"
+    ]}]
+  }
+];
+
+const STORAGE_KEY = "dokan_release_checklist_v1";
+const COLLAPSE_KEY = "dokan_release_collapse_v1";
+const META_KEY = "dokan_release_meta_v1";
+let state = {};
+let collapsed = {};
+let meta = {};
+
+function loadState() {
+  try { state = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { state = {}; }
+  try { collapsed = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || "{}"); } catch { collapsed = {}; }
+  try { meta = JSON.parse(localStorage.getItem(META_KEY) || "{}"); } catch { meta = {}; }
+}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function saveCollapsed() { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed)); }
+function saveMeta() { localStorage.setItem(META_KEY, JSON.stringify(meta)); }
+
+function itemKey(sectionId, groupIdx, itemIdx) { return `${sectionId}::${groupIdx}::${itemIdx}`; }
+
+let currentFilter = "all";
+
+function render() {
+  const root = document.getElementById("checklist");
+  root.innerHTML = "";
+  let total = 0, done = 0;
+
+  DATA.forEach(section => {
+    const secEl = document.createElement("div");
+    secEl.className = "section" + (collapsed[section.id] ? " collapsed" : "");
+
+    let secTotal = 0, secDone = 0;
+    const bodyFrag = document.createDocumentFragment();
+
+    section.groups.forEach((group, gIdx) => {
+      const groupEl = document.createElement("div");
+      groupEl.className = "group";
+      if (group.title) {
+        const t = document.createElement("p");
+        t.className = "group-title";
+        t.textContent = group.title;
+        groupEl.appendChild(t);
+      }
+
+      group.items.forEach((text, iIdx) => {
+        const key = itemKey(section.id, gIdx, iIdx);
+        const isDone = !!state[key];
+        total++; secTotal++;
+        if (isDone) { done++; secDone++; }
+
+        if (currentFilter === "open" && isDone) return;
+        if (currentFilter === "done" && !isDone) return;
+
+        const row = document.createElement("div");
+        row.className = "item" + (isDone ? " checked" : "");
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = isDone;
+        cb.id = key;
+        cb.addEventListener("change", () => {
+          state[key] = cb.checked;
+          saveState();
+          render();
+        });
+        const lbl = document.createElement("label");
+        lbl.htmlFor = key;
+        lbl.textContent = text;
+        row.appendChild(cb);
+        row.appendChild(lbl);
+        groupEl.appendChild(row);
+      });
+
+      if (groupEl.querySelectorAll(".item").length > 0 || (!group.items.length && currentFilter === "all")) {
+        bodyFrag.appendChild(groupEl);
+      }
+    });
+
+    const header = document.createElement("div");
+    header.className = "section-header";
+    header.innerHTML = `
+      <span class="chevron">\u25BC</span>
+      <span class="section-title">${section.title}</span>
+      <span class="section-count ${secDone === secTotal && secTotal > 0 ? 'done' : ''}">${secDone}/${secTotal}</span>
+    `;
+    header.addEventListener("click", () => {
+      collapsed[section.id] = !collapsed[section.id];
+      saveCollapsed();
+      render();
+    });
+
+    const body = document.createElement("div");
+    body.className = "section-body";
+    body.appendChild(bodyFrag);
+
+    secEl.appendChild(header);
+    secEl.appendChild(body);
+
+    if (body.children.length === 0 && currentFilter !== "all") {
+      // skip empty sections under filter
+    } else {
+      root.appendChild(secEl);
+    }
+  });
+
+  document.getElementById("total").textContent = total;
+  document.getElementById("done").textContent = done;
+  document.getElementById("remaining").textContent = total - done;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById("pct").textContent = pct + "%";
+  document.getElementById("fill").style.width = pct + "%";
+}
+
+// Meta bindings
+["Version", "Tester", "Date"].forEach(field => {
+  const el = document.getElementById("meta" + field);
+  el.value = meta[field.toLowerCase()] || "";
+  el.addEventListener("input", () => {
+    meta[field.toLowerCase()] = el.value;
+    saveMeta();
+  });
+});
+
+document.getElementById("expandAll").addEventListener("click", () => {
+  DATA.forEach(s => collapsed[s.id] = false);
+  saveCollapsed(); render();
+});
+document.getElementById("collapseAll").addEventListener("click", () => {
+  DATA.forEach(s => collapsed[s.id] = true);
+  saveCollapsed(); render();
+});
+document.getElementById("reset").addEventListener("click", () => {
+  if (confirm("Reset all checkboxes?")) { state = {}; saveState(); render(); }
+});
+document.getElementById("printBtn").addEventListener("click", () => window.print());
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const payload = { meta, state, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "dokan-checklist-" + (meta.version || "progress") + ".json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById("importBtn").addEventListener("click", () => {
+  document.getElementById("importFile").click();
+});
+document.getElementById("importFile").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (data.state) { state = data.state; saveState(); }
+      if (data.meta) {
+        meta = data.meta; saveMeta();
+        ["Version", "Tester", "Date"].forEach(f => {
+          document.getElementById("meta" + f).value = meta[f.toLowerCase()] || "";
+        });
+      }
+      render();
+      alert("Checklist imported.");
+    } catch (err) {
+      alert("Invalid file.");
+    }
+  };
+  reader.readAsText(file);
+});
+document.querySelectorAll(".pill").forEach(p => {
+  p.addEventListener("click", () => {
+    document.querySelectorAll(".pill").forEach(x => x.classList.remove("active"));
+    p.classList.add("active");
+    currentFilter = p.dataset.filter;
+    render();
+  });
+});
+
+loadState();
+render();
+</script>
+</body>
+</html>
